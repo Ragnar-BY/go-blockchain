@@ -1,72 +1,102 @@
 package types
 
 import (
-	"encoding/binary"
+	"bytes"
 	"fmt"
-	"golang.org/x/crypto/sha3"
-	"strconv"
 	"time"
+
+	"go-blockchain/utils"
 )
 
 type BlockHeader struct {
-	PrevBlockHash []byte
-	Number        uint64
-	Time          int64
+	prevBlockHash [32]byte
+	dataHash      [32]byte
+
+	time  int64
+	nonce int64
+
+	hash [32]byte
 }
 
-func NewBlockHeader(prevBlockHash []byte, prevNumber uint64) *BlockHeader {
-	return &BlockHeader{Time: time.Now().UnixNano(), PrevBlockHash: prevBlockHash, Number: prevNumber + 1}
+func NewBlockHeader(prevBlockHash [32]byte, dataHash [32]byte) *BlockHeader {
+	return &BlockHeader{prevBlockHash: prevBlockHash, dataHash: dataHash}
 }
-func (bh *BlockHeader) Hash() []byte {
 
-	t := []byte(strconv.FormatInt(bh.Time, 10))
+func (bh *BlockHeader) FindNonce() {
 
-	bNum := make([]byte, 8)
-	binary.BigEndian.PutUint64(bNum, bh.Number)
+	nonce, hash, t := pow.Run(bh.Header())
+	bh.hash = hash
+	bh.nonce = nonce
+	bh.time = t
+}
 
-	//prevHash+time+number
-	b := append(t, bNum...)
-	b = append(bh.PrevBlockHash[:], b...)
+//check if blockHeader hash is under PoW target
+func (bh *BlockHeader) Validate() bool {
+	return pow.IsValid(bh.FullHeader())
+}
 
-	hf := sha3.New256()
-	hf.Write(b)
+func (bh *BlockHeader) Hash() [32]byte {
+	return bh.hash
+}
 
-	return hf.Sum(nil)
+//prevBlockHash+dataHash
+func (bh *BlockHeader) Header() []byte {
+	data := bytes.Join(
+		[][]byte{
+			bh.prevBlockHash[:], bh.dataHash[:],
+		},
+		[]byte{},
+	)
+	return data
+}
 
+//prevBlockHash+DataHash+time+nonce
+func (bh *BlockHeader) FullHeader() []byte {
+
+	timeByte := utils.IntToHex(bh.time)
+
+	data := bytes.Join(
+		[][]byte{
+			bh.Header(), timeByte,
+		},
+		[]byte{},
+	)
+
+	nonceByte := utils.IntToHex(bh.nonce)
+	data = bytes.Join(
+		[][]byte{
+			data, nonceByte,
+		},
+		[]byte{},
+	)
+
+	return data
 }
 
 type Block struct {
 	header *BlockHeader
 	data   []byte
-
-	//cached
-	hash []byte
+	number int64
 }
 
-func NewBlock(h *BlockHeader, data []byte) *Block {
-	block := &Block{header: h, data: data}
+func NewBlock(h *BlockHeader, data []byte, number int64) *Block {
+	block := &Block{header: h, data: data, number: number}
 	return block
 }
 
-func (b *Block) Hash() []byte {
-	if len(b.hash) == 0 {
-		b.hash = b.header.Hash()
-	}
-	return b.hash
+func (b *Block) Hash() [32]byte {
+
+	return b.header.hash
 }
 func (b *Block) Data() []byte {
 	return b.data
 }
-func (b *Block) Number() uint64 {
-	return b.header.Number
+func (b *Block) Number() int64 {
+	return b.number
 }
 func (b *Block) ToString() string {
-	str := fmt.Sprintf("Block %v:[PrevHash: %x, Data: [%s] , Hash %x]",
-		b.Number(), b.header.PrevBlockHash, b.data, b.Hash())
+	t := time.Unix(0, b.header.time)
+	str := fmt.Sprintf("Block %v:[PrevHash: %x, Data: [%s] , Hash %x, CreatedAt %v]",
+		b.Number(), b.header.prevBlockHash, b.data, b.Hash(), t.Format("2006-01-02 15:04:05.99"))
 	return str
-}
-
-func GenesisBlock() *Block {
-	header := NewBlockHeader([]byte{}, 0)
-	return NewBlock(header, []byte{})
 }

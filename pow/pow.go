@@ -13,25 +13,24 @@ const complexity = 16
 const maxNonce = math.MaxInt64
 
 type ProofOfWork struct {
-	headerByte []byte
-	target     *big.Int
+	target *big.Int
 }
 
-func NewProofOfWork(b []byte) *ProofOfWork {
+func NewProofOfWork() *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-complexity))
 
-	pow := &ProofOfWork{b, target}
+	pow := &ProofOfWork{target}
 
 	return pow
 }
 
-func (pow *ProofOfWork) Run() (int64, [32]byte, int64) {
+func (pow *ProofOfWork) Run(headerByte []byte) (int64, [32]byte, int64) {
 
 	t := time.Now().UnixNano()
 	timeByte := utils.IntToHex(t)
 
-	bh := pow.headerByte
+	bh := headerByte
 	data := bytes.Join(
 		[][]byte{
 			bh, timeByte,
@@ -62,4 +61,18 @@ func (pow *ProofOfWork) Run() (int64, [32]byte, int64) {
 	}
 	return nonce, hash, t
 
+}
+
+func (pow *ProofOfWork) IsValid(header []byte) bool {
+
+	var hash [32]byte
+	var hashInt big.Int
+
+	hash = utils.Hash(header)
+	hashInt.SetBytes(hash[:])
+
+	if hashInt.Cmp(pow.target) == -1 {
+		return true
+	}
+	return false
 }

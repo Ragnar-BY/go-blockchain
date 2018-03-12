@@ -2,18 +2,19 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"go-blockchain/types"
 )
 
 func main() {
 
+	fmt.Println("Start " + time.Now().Format("2006-01-02 15:04:05.99"))
 	bc := types.NewBlockChain()
 
 	bc.AddBlock([]byte("First block"))
 	bc.AddBlock([]byte("Second block"))
+	bc.AddBlock([]byte("Third block"))
 
-	for _, block := range bc.Blocks() {
-		fmt.Printf("%v \n", block.ToString())
-
-	}
+	fmt.Println("End " + time.Now().Format("2006-01-02 15:04:05.99"))
 }
