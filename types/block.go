@@ -5,29 +5,30 @@ import (
 	"fmt"
 	"time"
 
+	"encoding/gob"
 	"go-blockchain/utils"
 )
 
 type BlockHeader struct {
-	prevBlockHash [32]byte
-	dataHash      [32]byte
+	PrevBlockHash [32]byte
+	DataHash      [32]byte
 
-	time  int64
-	nonce int64
+	Time  int64
+	Nonce int64
 
-	hash [32]byte
+	Hash [32]byte
 }
 
 func NewBlockHeader(prevBlockHash [32]byte, dataHash [32]byte) *BlockHeader {
-	return &BlockHeader{prevBlockHash: prevBlockHash, dataHash: dataHash}
+	return &BlockHeader{PrevBlockHash: prevBlockHash, DataHash: dataHash}
 }
 
 func (bh *BlockHeader) FindNonce() {
 
 	nonce, hash, t := pow.Run(bh.Header())
-	bh.hash = hash
-	bh.nonce = nonce
-	bh.time = t
+	bh.Hash = hash
+	bh.Nonce = nonce
+	bh.Time = t
 }
 
 //check if blockHeader hash is under PoW target
@@ -35,15 +36,11 @@ func (bh *BlockHeader) Validate() bool {
 	return pow.IsValid(bh.FullHeader())
 }
 
-func (bh *BlockHeader) Hash() [32]byte {
-	return bh.hash
-}
-
 //prevBlockHash+dataHash
 func (bh *BlockHeader) Header() []byte {
 	data := bytes.Join(
 		[][]byte{
-			bh.prevBlockHash[:], bh.dataHash[:],
+			bh.PrevBlockHash[:], bh.DataHash[:],
 		},
 		[]byte{},
 	)
@@ -53,7 +50,7 @@ func (bh *BlockHeader) Header() []byte {
 //prevBlockHash+DataHash+time+nonce
 func (bh *BlockHeader) FullHeader() []byte {
 
-	timeByte := utils.IntToHex(bh.time)
+	timeByte := utils.IntToHex(bh.Time)
 
 	data := bytes.Join(
 		[][]byte{
@@ -62,7 +59,7 @@ func (bh *BlockHeader) FullHeader() []byte {
 		[]byte{},
 	)
 
-	nonceByte := utils.IntToHex(bh.nonce)
+	nonceByte := utils.IntToHex(bh.Nonce)
 	data = bytes.Join(
 		[][]byte{
 			data, nonceByte,
@@ -74,29 +71,41 @@ func (bh *BlockHeader) FullHeader() []byte {
 }
 
 type Block struct {
-	header *BlockHeader
-	data   []byte
-	number int64
+	Header *BlockHeader
+	Data   []byte
+	Number int64
 }
 
 func NewBlock(h *BlockHeader, data []byte, number int64) *Block {
-	block := &Block{header: h, data: data, number: number}
+	block := &Block{Header: h, Data: data, Number: number}
 	return block
 }
 
 func (b *Block) Hash() [32]byte {
 
-	return b.header.hash
+	return b.Header.Hash
 }
-func (b *Block) Data() []byte {
-	return b.data
+
+//gob serialize and deserialize
+func (b *Block) Serialize() ([]byte, error) {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+
+	err := encoder.Encode(b)
+	return result.Bytes(), err
 }
-func (b *Block) Number() int64 {
-	return b.number
+func DeserializeBlock(b []byte) (*Block, error) {
+	var block Block
+
+	decoder := gob.NewDecoder(bytes.NewReader(b))
+	err := decoder.Decode(&block)
+
+	return &block, err
 }
+
 func (b *Block) ToString() string {
-	t := time.Unix(0, b.header.time)
+	t := time.Unix(0, b.Header.Time)
 	str := fmt.Sprintf("Block %v:[PrevHash: %x, Data: [%s] , Hash %x, CreatedAt %v]",
-		b.Number(), b.header.prevBlockHash, b.data, b.Hash(), t.Format("2006-01-02 15:04:05.99"))
+		b.Number, b.Header.PrevBlockHash, b.Data, b.Hash(), t.Format("2006-01-02 15:04:05.99"))
 	return str
 }
