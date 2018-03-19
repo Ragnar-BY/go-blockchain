@@ -31,7 +31,7 @@ func (bc *Blockchain) AddBlock(data []byte) {
 
 	header.FindNonce()
 
-	block := NewBlock(header, data, prevBlock.Number()+1)
+	block := NewBlock(header, data, prevBlock.Number+1)
 	bc.blocks = append(bc.blocks, block)
 
 	fmt.Println(block.ToString())
