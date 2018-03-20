@@ -1,10 +1,8 @@
 package pow
 
 import (
-	"bytes"
 	"math"
 	"math/big"
-	"time"
 
 	"go-blockchain/utils"
 )
@@ -25,50 +23,38 @@ func NewProofOfWork() *ProofOfWork {
 	return pow
 }
 
-func (pow *ProofOfWork) Run(headerByte []byte) (int64, [32]byte, int64) {
+func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte) {
 
-	t := time.Now().UnixNano()
-	timeByte := utils.IntToHex(t)
-
-	bh := headerByte
-	data := bytes.Join(
-		[][]byte{
-			bh, timeByte,
-		},
-		[]byte{},
-	)
-
-	var nonce int64
-	var nonceByte []byte
+	var nonceInt int64
+	var nonce [8]byte
 	var hash [32]byte
 
 	var hashInt big.Int
 
-	for nonce = 0; nonce < maxNonce; nonce++ {
-		nonceByte = utils.IntToHex(nonce)
-		data = bytes.Join(
-			[][]byte{
-				data, nonceByte,
-			},
-			[]byte{},
-		)
-		hash = utils.Hash(data)
+	for nonceInt = 0; nonceInt < maxNonce; nonceInt++ {
+		n := utils.IntToHex(nonceInt)
+		copy(nonce[:], n)
+		hash = utils.Hash([]interface{}{
+			header,
+			nonce,
+		})
 		hashInt.SetBytes(hash[:])
-
 		if hashInt.Cmp(pow.target) == -1 {
 			break
 		}
 	}
-	return nonce, hash, t
-
+	return nonce, hash
 }
 
-func (pow *ProofOfWork) IsValid(header []byte) bool {
+func (pow *ProofOfWork) IsValid(header [32]byte, nonce [8]byte) bool {
 
 	var hash [32]byte
 	var hashInt big.Int
 
-	hash = utils.Hash(header)
+	hash = utils.Hash([]interface{}{
+		header,
+		nonce,
+	})
 	hashInt.SetBytes(hash[:])
 
 	if hashInt.Cmp(pow.target) == -1 {

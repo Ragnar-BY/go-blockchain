@@ -14,59 +14,39 @@ type BlockHeader struct {
 	DataHash      [32]byte
 
 	Time  int64
-	Nonce int64
+	Nonce [8]byte
 
 	Hash [32]byte
 }
 
 func NewBlockHeader(prevBlockHash [32]byte, dataHash [32]byte) *BlockHeader {
+
 	return &BlockHeader{PrevBlockHash: prevBlockHash, DataHash: dataHash}
 }
 
 func (bh *BlockHeader) FindNonce() {
 
-	nonce, hash, t := pow.Run(bh.Header())
+	bh.Time = time.Now().UnixNano()
+	nonce, hash := pow.Run(bh.HeaderNoNonce())
+
 	bh.Hash = hash
 	bh.Nonce = nonce
-	bh.Time = t
+
 }
 
 //check if blockHeader hash is under PoW target
 func (bh *BlockHeader) Validate() bool {
-	return pow.IsValid(bh.FullHeader())
+	return pow.IsValid(bh.HeaderNoNonce(), bh.Nonce)
 }
 
 //prevBlockHash+dataHash
-func (bh *BlockHeader) Header() []byte {
-	data := bytes.Join(
-		[][]byte{
-			bh.PrevBlockHash[:], bh.DataHash[:],
-		},
-		[]byte{},
-	)
-	return data
-}
+func (bh *BlockHeader) HeaderNoNonce() [32]byte {
 
-//prevBlockHash+DataHash+time+nonce
-func (bh *BlockHeader) FullHeader() []byte {
-
-	timeByte := utils.IntToHex(bh.Time)
-
-	data := bytes.Join(
-		[][]byte{
-			bh.Header(), timeByte,
-		},
-		[]byte{},
-	)
-
-	nonceByte := utils.IntToHex(bh.Nonce)
-	data = bytes.Join(
-		[][]byte{
-			data, nonceByte,
-		},
-		[]byte{},
-	)
-
+	data := utils.Hash([]interface{}{
+		bh.PrevBlockHash[:],
+		bh.DataHash[:],
+		bh.Time,
+	})
 	return data
 }
 
