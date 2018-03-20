@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	pow_ "go-blockchain/pow"
-	"go-blockchain/utils"
+	pow_ "github.com/Ragnar-BY/go-blockchain/pow"
+	"github.com/Ragnar-BY/go-blockchain/utils"
 )
 
 var pow *pow_.ProofOfWork

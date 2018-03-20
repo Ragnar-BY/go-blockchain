@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"encoding/gob"
-	"go-blockchain/utils"
+	"github.com/Ragnar-BY/go-blockchain/utils"
 )
 
 type BlockHeader struct {

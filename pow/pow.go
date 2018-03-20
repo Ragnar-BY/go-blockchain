@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/big"
 
-	"go-blockchain/utils"
+	"github.com/Ragnar-BY/go-blockchain/utils"
 )
 
 const complexity = 16
