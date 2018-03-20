@@ -25,14 +25,14 @@ func NewProofOfWork() *ProofOfWork {
 
 func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte) {
 
-	var nonceInt int64
+	var nonceInt uint64
 	var nonce [8]byte
 	var hash [32]byte
 
 	var hashInt big.Int
 
 	for nonceInt = 0; nonceInt < maxNonce; nonceInt++ {
-		n := utils.IntToHex(nonceInt)
+		n := utils.UintToHex(nonceInt)
 		copy(nonce[:], n)
 		hash = utils.Hash([]interface{}{
 			header,
