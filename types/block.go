@@ -42,7 +42,7 @@ func (bh *BlockHeader) Validate() bool {
 //prevBlockHash+dataHash
 func (bh *BlockHeader) HeaderNoNonce() [32]byte {
 
-	data := utils.Hash([]interface{}{
+	data := utils.EncodeAndHash([]interface{}{
 		bh.PrevBlockHash[:],
 		bh.DataHash[:],
 		bh.Time,

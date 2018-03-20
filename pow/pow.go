@@ -34,7 +34,7 @@ func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte) {
 	for nonceInt = 0; nonceInt < maxNonce; nonceInt++ {
 		n := utils.UintToHex(nonceInt)
 		copy(nonce[:], n)
-		hash = utils.Hash([]interface{}{
+		hash = utils.EncodeAndHash([]interface{}{
 			header,
 			nonce,
 		})
@@ -51,7 +51,7 @@ func (pow *ProofOfWork) IsValid(header [32]byte, nonce [8]byte) bool {
 	var hash [32]byte
 	var hashInt big.Int
 
-	hash = utils.Hash([]interface{}{
+	hash = utils.EncodeAndHash([]interface{}{
 		header,
 		nonce,
 	})

@@ -20,7 +20,7 @@ func UintToHex(num uint64) []byte {
 	return buff.Bytes()
 }
 
-func Encode(data interface{}) []byte {
+func EncodeToBytes(data interface{}) []byte {
 	var buf bytes.Buffer
 
 	gob.Register([32]byte{})
@@ -34,14 +34,18 @@ func Encode(data interface{}) []byte {
 	return buf.Bytes()
 }
 
-func Hash(data interface{}) [32]byte {
+func Hash(data []byte) [32]byte {
 
 	hf := sha3.New256()
-	hf.Write(Encode(data))
+	hf.Write(data)
 
 	h := hf.Sum(nil)
 
 	var hashArray [32]byte
 	copy(hashArray[:], h[:])
 	return hashArray
+}
+
+func EncodeAndHash(data interface{}) [32]byte {
+	return Hash(EncodeToBytes(data))
 }
