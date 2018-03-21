@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"go-blockchain/types"
+	"github.com/Ragnar-BY/go-blockchain/types"
 )
 
 func main() {
