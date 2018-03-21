@@ -3,5 +3,3 @@ language: go
 # Don't email me the results of the test runs.
 notifications:
   email: false
-
-go_import_path: github.com
