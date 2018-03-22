@@ -6,7 +6,6 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
 
 //bucket has two key->values: l->lastHash,blockhash->block.Serialize()
@@ -14,7 +13,7 @@ type Database struct {
 	*bolt.DB
 }
 
-func OpenDB() (*Database, error) {
+func OpenDB(dbFile string) (*Database, error) {
 
 	db, err := bolt.Open(dbFile, 0600, nil)
 	return &Database{db}, err
