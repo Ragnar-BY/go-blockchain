@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"log"
 
+	"fmt"
 	pow_ "github.com/Ragnar-BY/go-blockchain/pow"
 	"github.com/Ragnar-BY/go-blockchain/utils"
 )
@@ -15,6 +16,10 @@ const dbFile = "blockchain.db"
 type Blockchain struct {
 	tip [32]byte
 	db  *utils.Database
+}
+
+func (b *Blockchain) Tip() [32]byte {
+	return b.tip
 }
 
 func NewBlockChain() *Blockchain {
@@ -79,8 +84,26 @@ func (bc *Blockchain) AddBlock(data []byte) {
 	if err != nil {
 		log.Panic(err)
 	}
-
+	bc.tip = newBlock.Hash()
 	log.Println(newBlock.ToString())
+}
+
+func (bc *Blockchain) GetBlockByHash(hash [32]byte) (*Block, error) {
+	serial := bc.db.GetBlockByHash(hash)
+	if serial == nil {
+		return nil, nil
+	}
+	b, err := DeserializeBlock(serial)
+	return b, err
+}
+
+func (bc *Blockchain) GetParentBlock(block *Block) (*Block, error) {
+	prevHash := block.Header.PrevBlockHash
+	b, err := bc.GetBlockByHash(prevHash)
+	if b != nil {
+		fmt.Printf("Block %v \n", prevHash)
+	}
+	return b, err
 }
 
 const genPrevHash = "35353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535"
