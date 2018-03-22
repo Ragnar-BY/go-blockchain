@@ -59,6 +59,19 @@ func (db *Database) GetLastHash() ([32]byte, error) {
 	return lastHash, nil
 }
 
+//return nil if not found
+func (db *Database) GetBlockByHash(hash [32]byte) []byte {
+
+	var block []byte
+
+	_ = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		block = b.Get(hash[:])
+		return nil
+	})
+	return block
+}
+
 func (db *Database) AddNewBlock(hash [32]byte, serial []byte) error {
 
 	err := db.Update(func(tx *bolt.Tx) error {
