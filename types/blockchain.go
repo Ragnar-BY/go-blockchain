@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/hex"
-	"fmt"
+	"log"
 
 	pow_ "github.com/Ragnar-BY/go-blockchain/pow"
 	"github.com/Ragnar-BY/go-blockchain/utils"
@@ -10,31 +10,77 @@ import (
 
 var pow *pow_.ProofOfWork
 
+const dbFile = "blockchain.db"
+
 type Blockchain struct {
-	blocks []*Block
+	tip [32]byte
+	db  *utils.Database
 }
 
 func NewBlockChain() *Blockchain {
+
 	pow = pow_.NewProofOfWork()
-	return &Blockchain{blocks: []*Block{GenesisBlock()}}
-}
-func (bc *Blockchain) Blocks() []*Block {
-	return bc.blocks
+
+	db, err := utils.OpenDB(dbFile)
+	if err != nil {
+		log.Panic(err)
+	}
+	bc := Blockchain{db: db}
+
+	if bc.db.IsBucketExist() == false {
+
+		bc.db.CreateNewBucket()
+
+		genesis := GenesisBlock()
+		serial, err := genesis.Serialize()
+		hash := genesis.Hash()
+		if err != nil {
+			log.Panic(err)
+		}
+
+		err = bc.db.AddNewBlock(hash, serial)
+		if err != nil {
+			log.Panic(err)
+		}
+		bc.tip = hash
+	} else {
+		tip, err := bc.db.GetLastHash()
+		if err != nil {
+			log.Panic(err)
+		}
+		bc.tip = tip
+	}
+	return &bc
+
 }
 
+// AddBlock saves provided data as a block in the blockchain
 func (bc *Blockchain) AddBlock(data []byte) {
-	prevBlock := bc.blocks[len(bc.blocks)-1]
-	prevHash := prevBlock.Hash()
+	var lastHash [32]byte
+
+	lastHash, err := bc.db.GetLastHash()
+	if err != nil {
+		log.Panic(err)
+	}
 
 	dataHash := utils.Hash(data)
-	header := NewBlockHeader(prevHash, dataHash)
+	header := NewBlockHeader(lastHash, dataHash)
 
 	header.FindNonce()
 
-	block := NewBlock(header, data)
-	bc.blocks = append(bc.blocks, block)
+	newBlock := NewBlock(header, data)
 
-	fmt.Println(block.ToString())
+	serial, err := newBlock.Serialize()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	err = bc.db.AddNewBlock(newBlock.Hash(), serial)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	log.Println(newBlock.ToString())
 }
 
 const genPrevHash = "35353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535353535"
