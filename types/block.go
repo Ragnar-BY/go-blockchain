@@ -53,11 +53,10 @@ func (bh *BlockHeader) HeaderNoNonce() [32]byte {
 type Block struct {
 	Header *BlockHeader
 	Data   []byte
-	Number int64
 }
 
-func NewBlock(h *BlockHeader, data []byte, number int64) *Block {
-	block := &Block{Header: h, Data: data, Number: number}
+func NewBlock(h *BlockHeader, data []byte) *Block {
+	block := &Block{Header: h, Data: data}
 	return block
 }
 
@@ -85,7 +84,7 @@ func DeserializeBlock(b []byte) (*Block, error) {
 
 func (b *Block) ToString() string {
 	t := time.Unix(0, b.Header.Time)
-	str := fmt.Sprintf("Block %v:[PrevHash: %x, Data: [%s] , Hash %x, CreatedAt %v]",
-		b.Number, b.Header.PrevBlockHash, b.Data, b.Hash(), t.Format("2006-01-02 15:04:05.99"))
+	str := fmt.Sprintf("Block :[PrevHash: %x, Data: [%s] , Hash %x, CreatedAt %v]",
+		b.Header.PrevBlockHash, b.Data, b.Hash(), t.Format("2006-01-02 15:04:05.99"))
 	return str
 }
