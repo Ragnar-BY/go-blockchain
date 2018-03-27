@@ -58,6 +58,10 @@ func NewBlockChain() *Blockchain {
 
 }
 
+func (bc *Blockchain) CloseDB() {
+	bc.db.Close()
+}
+
 // AddBlock saves provided data as a block in the blockchain
 func (bc *Blockchain) AddBlock(data []byte) {
 	var lastHash [32]byte
