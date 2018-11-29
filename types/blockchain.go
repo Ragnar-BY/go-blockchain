@@ -31,16 +31,22 @@ func NewBlockChain() *Blockchain {
 	}
 	bc := Blockchain{db: db}
 
-	if bc.db.IsBucketExist() == false {
+	if !bc.db.IsBucketExist() {
 
-		bc.db.CreateNewBucket()
-
-		genesis := GenesisBlock()
-		serial, err := genesis.Serialize()
-		hash := genesis.Hash()
+		err := bc.db.CreateNewBucket()
 		if err != nil {
-			log.Panic(err)
+			log.Println(" cannot create new blockchain ", err)
 		}
+
+		genesis, err := GenesisBlock()
+		if err != nil {
+			log.Panic("Genesis error", err)
+		}
+		serial, err := genesis.Serialize()
+		if err != nil {
+			log.Panic("Serialize error", err)
+		}
+		hash := genesis.Hash()
 
 		err = bc.db.AddNewBlock(hash, serial)
 		if err != nil {
@@ -63,31 +69,38 @@ func (bc *Blockchain) CloseDB() {
 }
 
 // AddBlock saves provided data as a block in the blockchain
-func (bc *Blockchain) AddBlock(data []byte) {
+func (bc *Blockchain) AddBlock(data []byte) error {
 	var lastHash [32]byte
 
 	lastHash, err := bc.db.GetLastHash()
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
 
-	dataHash := utils.Hash(data)
+	dataHash, err := utils.Hash(data)
+	if err != nil {
+		return err
+	}
 	header := NewBlockHeader(lastHash, dataHash)
 
-	header.FindNonce()
+	err = header.FindNonce()
+	if err != nil {
+		return err
+	}
 
 	newBlock := NewBlock(header, data)
 
 	serial, err := newBlock.Serialize()
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
 
 	err = bc.db.AddNewBlock(newBlock.Hash(), serial)
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
 	bc.tip = newBlock.Hash()
+	return nil
 }
 
 func (bc *Blockchain) GetBlockByHash(hash [32]byte) (*Block, error) {
@@ -107,15 +120,20 @@ func (bc *Blockchain) GetParentBlock(block *Block) (*Block, error) {
 
 const genPrevHash = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
 
-func GenesisBlock() *Block {
+func GenesisBlock() (*Block, error) {
 	var prevHash [32]byte
 	prevHashSlice, _ := hex.DecodeString(genPrevHash)
 	copy(prevHash[:], prevHashSlice[:32])
-	dataHash := utils.Hash([]byte{})
-
+	dataHash, err := utils.Hash([]byte{})
+	if err != nil {
+		return nil, err
+	}
 	header := NewBlockHeader(prevHash, dataHash)
-	header.FindNonce()
+	err = header.FindNonce()
+	if err != nil {
+		return nil, err
+	}
 
 	block := NewBlock(header, []byte{})
-	return block
+	return block, nil
 }

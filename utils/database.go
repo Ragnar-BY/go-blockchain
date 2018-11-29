@@ -22,14 +22,11 @@ func OpenDB(dbFile string) (*Database, error) {
 //check if bucket exist
 func (db *Database) IsBucketExist() bool {
 	var b *bolt.Bucket
-	db.View(func(tx *bolt.Tx) error {
+	_ = db.View(func(tx *bolt.Tx) error {
 		b = tx.Bucket([]byte(blocksBucket))
 		return nil
 	})
-	if b == nil {
-		return false
-	}
-	return true
+	return !(b == nil)
 }
 
 func (db *Database) CreateNewBucket() error {

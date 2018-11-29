@@ -23,7 +23,7 @@ func NewProofOfWork() *ProofOfWork {
 	return pow
 }
 
-func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte) {
+func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte, error) {
 
 	var nonceInt uint64
 	var nonce [8]byte
@@ -34,31 +34,38 @@ func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte) {
 	for nonceInt = 0; nonceInt < maxNonce; nonceInt++ {
 		n := utils.UintToHex(nonceInt)
 		copy(nonce[:], n)
-		hash = utils.EncodeAndHash([]interface{}{
+		var err error
+		hash, err = utils.EncodeAndHash([]interface{}{
 			header,
 			nonce,
 		})
+		if err != nil {
+			return [8]byte{}, [32]byte{}, err
+		}
 		hashInt.SetBytes(hash[:])
 		if hashInt.Cmp(pow.target) == -1 {
 			break
 		}
 	}
-	return nonce, hash
+	return nonce, hash, nil
 }
 
-func (pow *ProofOfWork) IsValid(header [32]byte, nonce [8]byte) bool {
+func (pow *ProofOfWork) IsValid(header [32]byte, nonce [8]byte) (bool, error) {
 
 	var hash [32]byte
 	var hashInt big.Int
 
-	hash = utils.EncodeAndHash([]interface{}{
+	hash, err := utils.EncodeAndHash([]interface{}{
 		header,
 		nonce,
 	})
+	if err != nil {
+		return false, err
+	}
 	hashInt.SetBytes(hash[:])
 
 	if hashInt.Cmp(pow.target) == -1 {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }

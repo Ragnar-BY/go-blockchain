@@ -24,7 +24,10 @@ func TestRun(t *testing.T) {
 	pow := NewProofOfWork()
 
 	for i := 0; i < len(tests); i++ {
-		n, h := pow.Run(tests[i].header)
+		n, h, err := pow.Run(tests[i].header)
+		if err != nil {
+			t.Errorf("get error %v", err)
+		}
 		if n != tests[i].nonce {
 			t.Errorf("Nonce:Expected %v, received %v", tests[i].nonce, n)
 		}
@@ -38,13 +41,21 @@ func TestIsValid(t *testing.T) {
 	pow := NewProofOfWork()
 
 	for i := 0; i < len(tests); i++ {
-		if pow.IsValid(tests[i].header, tests[i].nonce) == false {
+		res, err := pow.IsValid(tests[i].header, tests[i].nonce)
+		if err != nil {
+			t.Errorf("got error %v", err)
+		}
+		if !res {
 
 			t.Errorf("received false,expected true")
 		}
 	}
 
-	if pow.IsValid(tests[0].header, [8]byte{0, 0, 0, 0, 0, 0, 0, 0}) == true {
+	res, err := pow.IsValid(tests[0].header, [8]byte{0, 0, 0, 0, 0, 0, 0, 0})
+	if err != nil {
+		t.Errorf("got error %v", err)
+	}
+	if res {
 		t.Errorf("received true, expected false")
 	}
 }

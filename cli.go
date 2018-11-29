@@ -12,14 +12,18 @@ type CLI struct {
 	bc *types.Blockchain
 }
 
-func (cli *CLI) Run() {
+func (cli *CLI) Run() error {
 	blockData, printChain := cli.ParseFlags()
 	if blockData != "" {
-		cli.AddBlock([]byte(blockData))
+		err := cli.AddBlock([]byte(blockData))
+		if err != nil {
+			return err
+		}
 	}
-	if printChain != false {
+	if printChain {
 		cli.PrintBlockchain()
 	}
+	return nil
 }
 
 func (cli *CLI) ParseFlags() (string, bool) {
@@ -33,8 +37,8 @@ func (cli *CLI) ParseFlags() (string, bool) {
 	return blockData, printChain
 }
 
-func (cli *CLI) AddBlock(data []byte) {
-	cli.bc.AddBlock(data)
+func (cli *CLI) AddBlock(data []byte) error {
+	return cli.bc.AddBlock(data)
 }
 
 func (cli *CLI) PrintBlockchain() {

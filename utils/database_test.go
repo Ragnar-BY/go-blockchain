@@ -20,14 +20,14 @@ func TestNewDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if db.IsBucketExist() != false {
+	if db.IsBucketExist() {
 		t.Errorf("Expected 'Bucket is not exist'")
 	}
 	err = db.CreateNewBucket()
 	if err != nil {
 		t.Error(err)
 	}
-	if db.IsBucketExist() != true {
+	if !db.IsBucketExist() {
 		t.Errorf("Expected 'Bucket is exist'")
 	}
 	//test values
@@ -80,7 +80,7 @@ func TestExistingDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if db.IsBucketExist() != true {
+	if !db.IsBucketExist() {
 		t.Errorf("Expected 'Bucket is exist'")
 	}
 	//test values( this data are in Bucket

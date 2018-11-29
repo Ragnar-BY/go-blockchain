@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
+	"log"
 
 	"golang.org/x/crypto/sha3"
-	"log"
 )
 
 // UintToHex converts an int64 to a byte array
@@ -34,18 +34,21 @@ func EncodeToBytes(data interface{}) []byte {
 	return buf.Bytes()
 }
 
-func Hash(data []byte) [32]byte {
+func Hash(data []byte) ([32]byte, error) {
 
 	hf := sha3.New256()
-	hf.Write(data)
+	_, err := hf.Write(data)
+	if err != nil {
+		return [32]byte{}, err
+	}
 
 	h := hf.Sum(nil)
 
 	var hashArray [32]byte
 	copy(hashArray[:], h[:])
-	return hashArray
+	return hashArray, nil
 }
 
-func EncodeAndHash(data interface{}) [32]byte {
+func EncodeAndHash(data interface{}) ([32]byte, error) {
 	return Hash(EncodeToBytes(data))
 }

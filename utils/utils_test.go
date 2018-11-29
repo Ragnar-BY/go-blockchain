@@ -51,7 +51,10 @@ func TestHash(t *testing.T) {
 		dst := make([]byte, hex.DecodedLen(len(tests[i].out)))
 		n, _ := hex.Decode(dst, []byte(tests[i].out))
 
-		h := Hash(tests[i].in)
+		h, err := Hash(tests[i].in)
+		if err != nil {
+			t.Errorf("Can not count hash %v", err)
+		}
 		if !bytes.Equal(h[:], dst[:n]) {
 			t.Errorf("Expected %v, received %s", tests[i].out, h[:])
 		}

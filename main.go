@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/Ragnar-BY/go-blockchain/types"
 )
 
@@ -10,6 +12,6 @@ func main() {
 	defer bc.CloseDB()
 
 	cli := CLI{bc}
-	cli.Run()
+	log.Println(cli.Run())
 
 }

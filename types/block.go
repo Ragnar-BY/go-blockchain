@@ -2,10 +2,10 @@ package types
 
 import (
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"time"
 
-	"encoding/gob"
 	"github.com/Ragnar-BY/go-blockchain/utils"
 )
 
@@ -24,30 +24,39 @@ func NewBlockHeader(prevBlockHash [32]byte, dataHash [32]byte) *BlockHeader {
 	return &BlockHeader{PrevBlockHash: prevBlockHash, DataHash: dataHash}
 }
 
-func (bh *BlockHeader) FindNonce() {
+func (bh *BlockHeader) FindNonce() error {
 
 	bh.Time = time.Now().UnixNano()
-	nonce, hash := pow.Run(bh.HeaderNoNonce())
-
+	header, err := bh.HeaderNoNonce()
+	if err != nil {
+		return err
+	}
+	nonce, hash, err := pow.Run(header)
+	if err != nil {
+		return err
+	}
 	bh.Hash = hash
 	bh.Nonce = nonce
+	return nil
 
 }
 
 //check if blockHeader hash is under PoW target
-func (bh *BlockHeader) Validate() bool {
-	return pow.IsValid(bh.HeaderNoNonce(), bh.Nonce)
+func (bh *BlockHeader) Validate() (bool, error) {
+	header, err := bh.HeaderNoNonce()
+	if err != nil {
+		return false, err
+	}
+	return pow.IsValid(header, bh.Nonce)
 }
 
 //prevBlockHash+dataHash
-func (bh *BlockHeader) HeaderNoNonce() [32]byte {
-
-	data := utils.EncodeAndHash([]interface{}{
+func (bh *BlockHeader) HeaderNoNonce() ([32]byte, error) {
+	return utils.EncodeAndHash([]interface{}{
 		bh.PrevBlockHash[:],
 		bh.DataHash[:],
 		bh.Time,
 	})
-	return data
 }
 
 type Block struct {
