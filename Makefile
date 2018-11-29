@@ -4,7 +4,7 @@ all:
 	go build ./...
 
 lint:
-	golangci-lint run -E gocyclo -E goimports -E nakedret -E golint --exclude-use-default=false
+	golangci-lint run
 
 test:
 	go test -v ./... -race
