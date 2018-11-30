@@ -1,4 +1,4 @@
-package utils
+package bolt
 
 import (
 	"io/ioutil"
@@ -20,11 +20,11 @@ func TestNewDatabase(t *testing.T) {
 		err = os.Remove(testNewDB)
 		require.NoError(t, err, "Remove error")
 	}()
-	assert.False(t, db.IsBucketExist(), "bucket should not exist")
+	assert.False(t, db.isBucketExist(), "bucket should not exist")
 
-	err = db.CreateNewBucket()
-	require.NoError(t, err, "CreateNewBucket error")
-	assert.True(t, db.IsBucketExist(), "bucket should  exist")
+	err = db.createNewBucket()
+	require.NoError(t, err, "createNewBucket error")
+	assert.True(t, db.isBucketExist(), "bucket should  exist")
 
 	// test values
 	serial := []byte{1, 2, 3, 4, 5, 6, 7, 8}
@@ -58,7 +58,7 @@ func TestExistingDatabase(t *testing.T) {
 		require.NoError(t, err, "Remove error")
 	}()
 
-	assert.True(t, db.IsBucketExist(), "bucket should  exist")
+	assert.True(t, db.isBucketExist(), "bucket should  exist")
 
 	// test values( this data are in Bucket
 	serial := []byte{1, 2, 3, 4, 5, 6, 7, 8}

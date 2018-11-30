@@ -1,4 +1,4 @@
-package utils
+package bolt
 
 import (
 	"log"
@@ -21,8 +21,8 @@ func OpenDB(dbFile string) (*Database, error) {
 	return &Database{db}, err
 }
 
-// IsBucketExist checks if bucket exist
-func (db *Database) IsBucketExist() bool {
+// isBucketExist checks if bucket exist
+func (db *Database) isBucketExist() bool {
 	var b *bolt.Bucket
 	_ = db.View(func(tx *bolt.Tx) error {
 		b = tx.Bucket([]byte(blocksBucket))
@@ -31,8 +31,8 @@ func (db *Database) IsBucketExist() bool {
 	return !(b == nil)
 }
 
-// CreateNewBucket creates new bucket
-func (db *Database) CreateNewBucket() error {
+// createNewBucket creates new bucket
+func (db *Database) createNewBucket() error {
 
 	err := db.Update(func(tx *bolt.Tx) error {
 
@@ -91,4 +91,25 @@ func (db *Database) AddNewBlock(hash [32]byte, serial []byte) error {
 		return nil
 	})
 	return err
+}
+
+// CreateIfNotExist creates new bucket if not exists and return true if bucket is created.
+func (db *Database) CreateIfNotExist() (bool, error) {
+	exist := db.isBucketExist()
+	if !exist {
+		err := db.Update(func(tx *bolt.Tx) error {
+			log.Println("No existing blockchain found. Creating a new one...")
+			_, err := tx.CreateBucket([]byte(blocksBucket))
+			return err
+		})
+		if err != nil {
+			return false, err
+		}
+	}
+	return exist, nil
+}
+
+// Close closes bolt db
+func (db *Database) Close() error {
+	return db.DB.Close()
 }

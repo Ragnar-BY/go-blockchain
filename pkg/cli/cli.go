@@ -1,16 +1,15 @@
-package main
+package cli
 
 import (
 	"flag"
 	"fmt"
-	"log"
 
-	"github.com/Ragnar-BY/go-blockchain/types"
+	"github.com/Ragnar-BY/go-blockchain/pkg/blockchain"
 )
 
 // CLI is command-line interface
 type CLI struct {
-	bc *types.Blockchain
+	Blockchain *blockchain.Blockchain
 }
 
 // Run runs program
@@ -23,7 +22,11 @@ func (cli *CLI) Run() error {
 		}
 	}
 	if printChain {
-		cli.printBlockchain()
+		s, err := cli.printBlockchain()
+		if err != nil {
+			return err
+		}
+		fmt.Println(s)
 	}
 	return nil
 }
@@ -40,23 +43,24 @@ func (cli *CLI) parseFlags() (string, bool) {
 }
 
 func (cli *CLI) addBlock(data []byte) error {
-	return cli.bc.AddBlock(data)
+	return cli.Blockchain.AddBlock(data)
 }
 
-func (cli *CLI) printBlockchain() {
+func (cli *CLI) printBlockchain() (string, error) {
 
-	tip := cli.bc.Tip()
-
-	block, err := cli.bc.GetBlockByHash(tip)
+	tip := cli.Blockchain.Tip()
+	blockStr := ""
+	block, err := cli.Blockchain.GetBlockByHash(tip)
 	if err != nil {
-		log.Println(err)
-	} else {
-		for block != nil {
-			fmt.Println(block.ToString())
-			block, err = cli.bc.GetParentBlock(block)
-			if err != nil {
-				log.Println(err)
-			}
+		return "", err
+	}
+	for block != nil {
+		blockStr += block.ToString() + "\n"
+		block, err = cli.Blockchain.GetParentBlock(block)
+		if err != nil {
+			return "", err
 		}
 	}
+
+	return blockStr, err
 }

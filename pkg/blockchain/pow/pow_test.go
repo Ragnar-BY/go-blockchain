@@ -45,7 +45,6 @@ func TestProofOfWork_IsValid(t *testing.T) {
 			assert.True(t, res)
 		})
 	}
-
 	res, err := pow.IsValid(tests[0].header, [8]byte{0, 0, 0, 0, 0, 0, 0, 0})
 	require.NoError(t, err)
 	assert.False(t, res)

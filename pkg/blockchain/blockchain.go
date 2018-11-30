@@ -1,21 +1,25 @@
-package types
+package blockchain
 
 import (
 	"encoding/hex"
-	"log"
 
-	pow_ "github.com/Ragnar-BY/go-blockchain/pow"
-	"github.com/Ragnar-BY/go-blockchain/utils"
+	pow_ "github.com/Ragnar-BY/go-blockchain/pkg/blockchain/pow"
+	"github.com/Ragnar-BY/go-blockchain/pkg/utils"
 )
 
 var pow *pow_.ProofOfWork
 
-const dbFile = "blockchain.db"
+type blockDatabase interface {
+	AddNewBlock(hash [32]byte, serial []byte) error
+	GetLastHash() ([32]byte, error)
+	GetBlockByHash(hash [32]byte) []byte
+	CreateIfNotExist() (bool, error)
+}
 
 // Blockchain is struct for blockchain
 type Blockchain struct {
 	tip [32]byte
-	db  *utils.Database
+	db  blockDatabase
 }
 
 // Tip returns tip.
@@ -24,52 +28,40 @@ func (bc *Blockchain) Tip() [32]byte {
 }
 
 // NewBlockChain create blockchain.
-func NewBlockChain() *Blockchain {
+func NewBlockChain(db blockDatabase) (*Blockchain, error) {
 
 	pow = pow_.NewProofOfWork()
 
-	db, err := utils.OpenDB(dbFile)
-	if err != nil {
-		log.Panic(err)
-	}
 	bc := Blockchain{db: db}
-
-	if !bc.db.IsBucketExist() {
-
-		err := bc.db.CreateNewBucket()
-		if err != nil {
-			log.Println(" cannot create new blockchain ", err)
-		}
-
+	exist, err := bc.db.CreateIfNotExist()
+	if err != nil {
+		return nil, err
+	}
+	if !exist {
 		genesis, err := GenesisBlock()
 		if err != nil {
-			log.Panic("Genesis error", err)
+			return nil, err
 		}
 		serial, err := genesis.Serialize()
 		if err != nil {
-			log.Panic("Serialize error", err)
+			return nil, err
 		}
 		hash := genesis.Hash()
 
 		err = bc.db.AddNewBlock(hash, serial)
 		if err != nil {
-			log.Panic(err)
+			return nil, err
 		}
 		bc.tip = hash
 	} else {
 		tip, err := bc.db.GetLastHash()
 		if err != nil {
-			log.Panic(err)
+			return nil, err
 		}
 		bc.tip = tip
 	}
-	return &bc
+	return &bc, nil
 
-}
-
-// CloseDB closes db.
-func (bc *Blockchain) CloseDB() error {
-	return bc.db.Close()
 }
 
 // AddBlock saves provided data as a block in the blockchain

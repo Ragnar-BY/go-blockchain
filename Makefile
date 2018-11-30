@@ -1,7 +1,7 @@
 .PHONY: all lint test
 
 all:
-	go build ./...
+	go build ./cmd/cli
 
 lint:
 	golangci-lint run

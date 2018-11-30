@@ -1,4 +1,4 @@
-package types
+package blockchain
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Ragnar-BY/go-blockchain/utils"
+	"github.com/Ragnar-BY/go-blockchain/pkg/utils"
 )
 
 // BlockHeader is block header.
