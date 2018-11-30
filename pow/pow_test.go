@@ -39,15 +39,6 @@ func TestProofOfWork_IsValid(t *testing.T) {
 	pow := NewProofOfWork()
 
 	for i := 0; i < len(tests); i++ {
-		res, err := pow.IsValid(tests[i].header, tests[i].nonce)
-		if err != nil {
-			t.Errorf("got error %v", err)
-		}
-		if !res {
-			t.Errorf("received false,expected true")
-		}
-	}
-	for i := 0; i < len(tests); i++ {
 		t.Run("test "+string(i), func(t *testing.T) {
 			res, err := pow.IsValid(tests[i].header, tests[i].nonce)
 			require.NoError(t, err)
@@ -58,5 +49,4 @@ func TestProofOfWork_IsValid(t *testing.T) {
 	res, err := pow.IsValid(tests[0].header, [8]byte{0, 0, 0, 0, 0, 0, 0, 0})
 	require.NoError(t, err)
 	assert.False(t, res)
-
 }
