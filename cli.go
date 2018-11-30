@@ -8,25 +8,27 @@ import (
 	"github.com/Ragnar-BY/go-blockchain/types"
 )
 
+// CLI is command-line interface
 type CLI struct {
 	bc *types.Blockchain
 }
 
+// Run runs program
 func (cli *CLI) Run() error {
-	blockData, printChain := cli.ParseFlags()
+	blockData, printChain := cli.parseFlags()
 	if blockData != "" {
-		err := cli.AddBlock([]byte(blockData))
+		err := cli.addBlock([]byte(blockData))
 		if err != nil {
 			return err
 		}
 	}
 	if printChain {
-		cli.PrintBlockchain()
+		cli.printBlockchain()
 	}
 	return nil
 }
 
-func (cli *CLI) ParseFlags() (string, bool) {
+func (cli *CLI) parseFlags() (string, bool) {
 	var blockData string
 	flag.StringVar(&blockData, "addblock", "", "Add new block with data")
 
@@ -37,11 +39,11 @@ func (cli *CLI) ParseFlags() (string, bool) {
 	return blockData, printChain
 }
 
-func (cli *CLI) AddBlock(data []byte) error {
+func (cli *CLI) addBlock(data []byte) error {
 	return cli.bc.AddBlock(data)
 }
 
-func (cli *CLI) PrintBlockchain() {
+func (cli *CLI) printBlockchain() {
 
 	tip := cli.bc.Tip()
 

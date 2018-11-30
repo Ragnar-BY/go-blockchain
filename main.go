@@ -9,9 +9,13 @@ import (
 func main() {
 
 	bc := types.NewBlockChain()
-	defer bc.CloseDB()
 
 	cli := CLI{bc}
 	log.Println(cli.Run())
+
+	err := bc.CloseDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }

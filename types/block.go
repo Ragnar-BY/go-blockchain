@@ -9,6 +9,7 @@ import (
 	"github.com/Ragnar-BY/go-blockchain/utils"
 )
 
+// BlockHeader is block header.
 type BlockHeader struct {
 	PrevBlockHash [32]byte
 	DataHash      [32]byte
@@ -19,11 +20,13 @@ type BlockHeader struct {
 	Hash [32]byte
 }
 
+// NewBlockHeader creates new blockheader.
 func NewBlockHeader(prevBlockHash [32]byte, dataHash [32]byte) *BlockHeader {
 
 	return &BlockHeader{PrevBlockHash: prevBlockHash, DataHash: dataHash}
 }
 
+// FindNonce finds nonce and save it to header.
 func (bh *BlockHeader) FindNonce() error {
 
 	bh.Time = time.Now().UnixNano()
@@ -41,7 +44,7 @@ func (bh *BlockHeader) FindNonce() error {
 
 }
 
-//check if blockHeader hash is under PoW target
+// Validate checks if blockHeader hash is under PoW target.
 func (bh *BlockHeader) Validate() (bool, error) {
 	header, err := bh.HeaderNoNonce()
 	if err != nil {
@@ -50,7 +53,7 @@ func (bh *BlockHeader) Validate() (bool, error) {
 	return pow.IsValid(header, bh.Nonce)
 }
 
-//prevBlockHash+dataHash
+// HeaderNoNonce encodes prevBlockHash+dataHash
 func (bh *BlockHeader) HeaderNoNonce() ([32]byte, error) {
 	return utils.EncodeAndHash([]interface{}{
 		bh.PrevBlockHash[:],
@@ -59,22 +62,25 @@ func (bh *BlockHeader) HeaderNoNonce() ([32]byte, error) {
 	})
 }
 
+// Block is block of blockhain with data and header.
 type Block struct {
 	Header *BlockHeader
 	Data   []byte
 }
 
+// NewBlock creates new block.
 func NewBlock(h *BlockHeader, data []byte) *Block {
 	block := &Block{Header: h, Data: data}
 	return block
 }
 
+// Hash returs blockHash
 func (b *Block) Hash() [32]byte {
 
 	return b.Header.Hash
 }
 
-//gob serialize and deserialize
+// Serialize makes gob serialize and deserialize
 func (b *Block) Serialize() ([]byte, error) {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
@@ -82,6 +88,8 @@ func (b *Block) Serialize() ([]byte, error) {
 	err := encoder.Encode(b)
 	return result.Bytes(), err
 }
+
+// DeserializeBlock makes gob deserialize.
 func DeserializeBlock(b []byte) (*Block, error) {
 	var block Block
 
@@ -91,6 +99,7 @@ func DeserializeBlock(b []byte) (*Block, error) {
 	return &block, err
 }
 
+// ToString returns string representation of Block.
 func (b *Block) ToString() string {
 	t := time.Unix(0, b.Header.Time)
 	str := fmt.Sprintf("Block :[PrevHash: %x, Data: [%s] , Hash %x, CreatedAt %v]",

@@ -13,7 +13,10 @@ const testExistDB = "testdata/testblockchain.db"
 //test if there are not db file
 func TestNewDatabase(t *testing.T) {
 
-	os.Remove(testNewDB)
+	err := os.Remove(testNewDB)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	db, err := OpenDB(testNewDB)
 	if err != nil {
@@ -51,7 +54,10 @@ func TestNewDatabase(t *testing.T) {
 		t.Errorf("Expected %v, received %v", hash, newHash)
 	}
 
-	os.Remove(testNewDB)
+	err = os.Remove(testNewDB)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 //test if there is db file with data
@@ -83,7 +89,7 @@ func TestExistingDatabase(t *testing.T) {
 	if !db.IsBucketExist() {
 		t.Errorf("Expected 'Bucket is exist'")
 	}
-	//test values( this data are in Bucket
+	// test values( this data are in Bucket
 	serial := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	hash := [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 
@@ -119,5 +125,8 @@ func TestExistingDatabase(t *testing.T) {
 		t.Errorf("Expected %v, received %v", hash2, newHash)
 	}
 
-	os.Remove(dbFile)
+	err = os.Remove(dbFile)
+	if err != nil {
+		t.Fatal(err)
+	}
 }

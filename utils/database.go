@@ -8,18 +8,20 @@ import (
 
 const blocksBucket = "blocks"
 
-//bucket has two key->values: l->lastHash,blockhash->block.Serialize()
+// Database is database with bolt.DB.
+// bucket has two key->values: l->lastHash,blockhash->block.Serialize()
 type Database struct {
 	*bolt.DB
 }
 
+// OpenDB opens bolt.DB
 func OpenDB(dbFile string) (*Database, error) {
 
 	db, err := bolt.Open(dbFile, 0600, nil)
 	return &Database{db}, err
 }
 
-//check if bucket exist
+// IsBucketExist checks if bucket exist
 func (db *Database) IsBucketExist() bool {
 	var b *bolt.Bucket
 	_ = db.View(func(tx *bolt.Tx) error {
@@ -29,6 +31,7 @@ func (db *Database) IsBucketExist() bool {
 	return !(b == nil)
 }
 
+// CreateNewBucket creates new bucket
 func (db *Database) CreateNewBucket() error {
 
 	err := db.Update(func(tx *bolt.Tx) error {
@@ -40,7 +43,7 @@ func (db *Database) CreateNewBucket() error {
 	return err
 }
 
-//get 'l' value
+// GetLastHash gets lash hash value from db.
 func (db *Database) GetLastHash() ([32]byte, error) {
 	var lastHash [32]byte
 	err := db.View(func(tx *bolt.Tx) error {
@@ -55,11 +58,10 @@ func (db *Database) GetLastHash() ([32]byte, error) {
 	return lastHash, nil
 }
 
-//return nil if not found
+// GetBlockByHash gets block by hash or return nil if not found
 func (db *Database) GetBlockByHash(hash [32]byte) []byte {
 
 	var block []byte
-
 	_ = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		block = b.Get(hash[:])
@@ -68,6 +70,7 @@ func (db *Database) GetBlockByHash(hash [32]byte) []byte {
 	return block
 }
 
+// AddNewBlock adds new block to blockchain.
 func (db *Database) AddNewBlock(hash [32]byte, serial []byte) error {
 
 	err := db.Update(func(tx *bolt.Tx) error {
@@ -75,7 +78,7 @@ func (db *Database) AddNewBlock(hash [32]byte, serial []byte) error {
 
 		h := hash[:]
 
-		//add block
+		// add block
 		err := b.Put(h, serial)
 		if err != nil {
 			return err

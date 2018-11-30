@@ -10,10 +10,12 @@ import (
 const complexity = 16
 const maxNonce = math.MaxInt64
 
+// ProofOfWork is PoW struct
 type ProofOfWork struct {
 	target *big.Int
 }
 
+// NewProofOfWork creates new PoW.
 func NewProofOfWork() *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-complexity))
@@ -23,6 +25,7 @@ func NewProofOfWork() *ProofOfWork {
 	return pow
 }
 
+// Run starts PoW process.
 func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte, error) {
 
 	var nonceInt uint64
@@ -50,6 +53,7 @@ func (pow *ProofOfWork) Run(header [32]byte) ([8]byte, [32]byte, error) {
 	return nonce, hash, nil
 }
 
+// IsValid checks if header+nonce can be saved in blockchain.
 func (pow *ProofOfWork) IsValid(header [32]byte, nonce [8]byte) (bool, error) {
 
 	var hash [32]byte

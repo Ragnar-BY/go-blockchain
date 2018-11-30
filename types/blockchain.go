@@ -12,15 +12,18 @@ var pow *pow_.ProofOfWork
 
 const dbFile = "blockchain.db"
 
+// Blockchain is struct for blockchain
 type Blockchain struct {
 	tip [32]byte
 	db  *utils.Database
 }
 
+// Tip returns tip.
 func (bc *Blockchain) Tip() [32]byte {
 	return bc.tip
 }
 
+// NewBlockChain create blockchain.
 func NewBlockChain() *Blockchain {
 
 	pow = pow_.NewProofOfWork()
@@ -64,8 +67,9 @@ func NewBlockChain() *Blockchain {
 
 }
 
-func (bc *Blockchain) CloseDB() {
-	bc.db.Close()
+// CloseDB closes db.
+func (bc *Blockchain) CloseDB() error {
+	return bc.db.Close()
 }
 
 // AddBlock saves provided data as a block in the blockchain
@@ -103,6 +107,7 @@ func (bc *Blockchain) AddBlock(data []byte) error {
 	return nil
 }
 
+// GetBlockByHash gets block by hash
 func (bc *Blockchain) GetBlockByHash(hash [32]byte) (*Block, error) {
 	serial := bc.db.GetBlockByHash(hash)
 	if serial == nil {
@@ -112,6 +117,7 @@ func (bc *Blockchain) GetBlockByHash(hash [32]byte) (*Block, error) {
 	return b, err
 }
 
+// GetParentBlock gets parent block for block.
 func (bc *Blockchain) GetParentBlock(block *Block) (*Block, error) {
 	prevHash := block.Header.PrevBlockHash
 	b, err := bc.GetBlockByHash(prevHash)
@@ -120,6 +126,7 @@ func (bc *Blockchain) GetParentBlock(block *Block) (*Block, error) {
 
 const genPrevHash = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
 
+// GenesisBlock generates genesis block.
 func GenesisBlock() (*Block, error) {
 	var prevHash [32]byte
 	prevHashSlice, _ := hex.DecodeString(genPrevHash)
