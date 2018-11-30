@@ -14,7 +14,7 @@ type Database struct {
 	*bolt.DB
 }
 
-// OpenDB opens bolt.DB
+// OpenDB creates and opens bolt.DB
 func OpenDB(dbFile string) (*Database, error) {
 
 	db, err := bolt.Open(dbFile, 0600, nil)
