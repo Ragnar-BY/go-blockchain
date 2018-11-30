@@ -2,6 +2,9 @@ package pow
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type Test struct {
@@ -19,25 +22,20 @@ var tests = []Test{
 	},
 }
 
-func TestRun(t *testing.T) {
-
+func TestProofOfWork_Run(t *testing.T) {
 	pow := NewProofOfWork()
 
 	for i := 0; i < len(tests); i++ {
-		n, h, err := pow.Run(tests[i].header)
-		if err != nil {
-			t.Errorf("get error %v", err)
-		}
-		if n != tests[i].nonce {
-			t.Errorf("Nonce:Expected %v, received %v", tests[i].nonce, n)
-		}
-		if h != tests[i].hash {
-			t.Errorf("Hash:Expected %v, received %v", tests[i].hash, h)
-		}
+		t.Run("test "+string(i), func(t *testing.T) {
+			n, h, err := pow.Run(tests[i].header)
+			require.NoError(t, err)
+			assert.Equal(t, n, tests[i].nonce)
+			assert.Equal(t, h, tests[i].hash)
+		})
 	}
 }
 
-func TestIsValid(t *testing.T) {
+func TestProofOfWork_IsValid(t *testing.T) {
 	pow := NewProofOfWork()
 
 	for i := 0; i < len(tests); i++ {
@@ -46,16 +44,19 @@ func TestIsValid(t *testing.T) {
 			t.Errorf("got error %v", err)
 		}
 		if !res {
-
 			t.Errorf("received false,expected true")
 		}
 	}
+	for i := 0; i < len(tests); i++ {
+		t.Run("test "+string(i), func(t *testing.T) {
+			res, err := pow.IsValid(tests[i].header, tests[i].nonce)
+			require.NoError(t, err)
+			assert.True(t, res)
+		})
+	}
 
 	res, err := pow.IsValid(tests[0].header, [8]byte{0, 0, 0, 0, 0, 0, 0, 0})
-	if err != nil {
-		t.Errorf("got error %v", err)
-	}
-	if res {
-		t.Errorf("received true, expected false")
-	}
+	require.NoError(t, err)
+	assert.False(t, res)
+
 }
